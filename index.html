@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echoes in the Fabric</title>
+    <style>
+        :root { --glass: rgba(255, 255, 255, 0.1); --blur: blur(12px); }
+        body { background: #0a0a0c; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; }
+        .container { max-width: 900px; padding: 40px; }
+        .chapter-card { 
+            background: var(--glass); backdrop-filter: var(--blur); 
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; 
+            padding: 25px; margin-bottom: 30px; display: grid; grid-template-columns: 200px 1fr; gap: 20px;
+        }
+        .render-img { width: 100%; border-radius: 8px; border: 1px solid #444; }
+        h1, h2 { letter-spacing: 2px; text-transform: uppercase; color: #00d4ff; }
+        audio { width: 100%; margin-top: 15px; filter: invert(100%) hue-rotate(180deg) brightness(1.5); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Echoes in the Fabric</h1>
+        <div class="chapter-card">
+            <img src="images/intro_render.png" class="render-img" alt="World of Dorin">
+            <div>
+                <h2>Introduction</h2>
+                <p>On the distant world of Dorin, life clings to existence within sprawling, self-sustaining domed cities like Veridia...</p>
+                <audio controls src="audio/intro.wav"></audio>
+            </div>
+        </div>
+        <!-- Repeat .chapter-card for all 17 chapters -->
+    </div>
+    <script>
+        document.addEventListener('play', function(e){
+            var audios = document.getElementsByTagName('audio');
+            for(var i = 0, len = audios.length; i < len;i++){
+                if(audios[i] != e.target){ audios[i].pause(); }
+            }
+        }, true);
+    </script>
+</body>
+</html>
