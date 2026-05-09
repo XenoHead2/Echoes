@@ -6,13 +6,23 @@
     <title>Echoes in the Fabric</title>
     <style>
         :root { --glass: rgba(255, 255, 255, 0.1); --blur: blur(12px); }
-        body { background: #0a0a0c; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; }
+       body {
+    background: radial-gradient(circle at center, #1a1a1f 0%, #050505 100%);
+    background-attachment: fixed;
+    color: #eee; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
         .container { max-width: 900px; padding: 40px; }
-        .chapter-card { 
-            background: var(--glass); backdrop-filter: var(--blur); 
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; 
-            padding: 25px; margin-bottom: 30px; display: grid; grid-template-columns: 200px 1fr; gap: 20px;
-        }
+        .chapter-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px) saturate(150%); /* High-end frosted glass */
+    border: 1px solid rgba(0, 212, 255, 0.2); /* Subtle blue glow border */
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+    transition: transform 0.3s ease, border 0.3s ease;
+}
+
+.chapter-card:hover {
+    transform: translateY(-5px); /* Lift effect on hover */
+    border: 1px solid rgba(0, 212, 255, 0.5);
+}
         .render-img { width: 100%; border-radius: 8px; border: 1px solid #444; }
         h1, h2 { letter-spacing: 2px; text-transform: uppercase; color: #00d4ff; }
         audio { width: 100%; margin-top: 15px; filter: invert(100%) hue-rotate(180deg) brightness(1.5); }
