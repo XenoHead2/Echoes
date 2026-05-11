@@ -338,14 +338,17 @@
 
             localStorage.setItem('lastActiveChapter', JSON.stringify({ type: 'chapter', num: num, title: title }));
 
+            player.setAttribute('src', audioSrc);
+            player.src = audioSrc;
+
             // Feature 1: Load Bookmark (Wait for metadata to ensure currentTime can be set)
             player.onloadedmetadata = () => {
                 const savedTime = localStorage.getItem(`bookmark_${audioSrc}`);
                 if (savedTime) player.currentTime = parseFloat(savedTime);
                 player.onloadedmetadata = null;
             };
+            player.load(); // Force reload to ensure onloadedmetadata fires reliably
 
-            player.src = audioSrc;
             titleDisplay.innerText = `Chapter ${num}: ${title}`;
             descDisplay.innerText = `You are now listening to the audio broadcast of Chapter ${num}.`;
             
@@ -368,14 +371,17 @@
 
             localStorage.setItem('lastActiveChapter', JSON.stringify({ type: 'intro' }));
 
+            player.setAttribute('src', audioSrc);
+            player.src = audioSrc;
+
             // Feature 1: Load Bookmark (Wait for metadata to ensure currentTime can be set)
             player.onloadedmetadata = () => {
                 const savedTime = localStorage.getItem(`bookmark_${audioSrc}`);
                 if (savedTime) player.currentTime = parseFloat(savedTime);
                 player.onloadedmetadata = null;
             };
+            player.load(); // Force reload to ensure onloadedmetadata fires reliably
 
-            player.src = audioSrc;
             titleDisplay.innerText = `Introduction`;
             descDisplay.innerText = `On the distant world of Dorin, life clings to existence within sprawling, self-sustaining domed cities like Veridia...`;
 
@@ -431,10 +437,13 @@
 
         mainPlayer.addEventListener('timeupdate', () => {
             const currentTime = mainPlayer.currentTime;
-            const currentSrc = mainPlayer.getAttribute('src');
-
-            // Feature 1: Save Bookmark every update
-            localStorage.setItem(`bookmark_${currentSrc}`, currentTime);
+            const currentSrc = mainPlayer.getAttribute('src') || mainPlayer.src;
+            
+            // Prevent overwriting bookmarks with 0 before the audio has loaded properly
+            if (currentTime > 0) {
+                // Feature 1: Save Bookmark every update
+                localStorage.setItem(`bookmark_${currentSrc}`, currentTime);
+            }
 
             // Feature 2: Sync-to-Audio Comic Feature
             const milestones = chapterMilestones[currentSrc];
