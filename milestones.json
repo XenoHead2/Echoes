@@ -27,16 +27,8 @@
     ],
     "audio/chapter1.mp3": [
         {
-            "time": 0,
-            "img": "images/unnamed (5).jpg"
-        },
-        {
             "time": 5,
             "img": "images/ch1_20s.jpg"
-        },
-        {
-            "time": 23,
-            "img": "images/Kael packing bag.png"
         }
     ],
     "audio/chapter6.mp3": [],
