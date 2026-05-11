@@ -1,0 +1,44 @@
+{
+    "audio/intro.mp3": [
+        {
+            "time": 1,
+            "img": "images/Dorin_space_shot.png"
+        },
+        {
+            "time": 9,
+            "img": "images/Veridia.jpg"
+        },
+        {
+            "time": 14,
+            "img": "images/sun.png"
+        },
+        {
+            "time": 27,
+            "img": "images/Kael-2.png"
+        },
+        {
+            "time": 42,
+            "img": "images/space2.png"
+        },
+        {
+            "time": 55,
+            "img": "images/sun.png"
+        }
+    ],
+    "audio/chapter1.mp3": [
+        {
+            "time": 0,
+            "img": "images/unnamed (5).jpg"
+        },
+        {
+            "time": 5,
+            "img": "images/ch1_20s.jpg"
+        },
+        {
+            "time": 23,
+            "img": "images/Kael packing bag.png"
+        }
+    ],
+    "audio/chapter6.mp3": [],
+    "audio/chapter2.mp3": []
+}

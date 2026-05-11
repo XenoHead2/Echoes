@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chapter Admin - Echoes in the Fabric</title>
+    <title>Admin - Echoes in the Fabric</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -13,161 +13,256 @@
             --border: rgba(0, 212, 255, 0.2);
             --accent: #00d4ff;
             --text-muted: #aaa;
+            --bg-color: #0a0a0c;
         }   
 
         body {
-            background: #0a0a0c;
+            background: var(--bg-color);
             color: #eee; 
             font-family: 'Inter', sans-serif;
             margin: 0;
             display: flex;
-            justify-content: center;
             min-height: 100vh;
-            padding: 40px;
         }
 
-        .container {
-            width: 800px;
-            max-width: 100%;
-            background: var(--glass);
-            backdrop-filter: var(--blur);
-            border: 1px solid var(--border);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        .sidebar {
+            width: 400px;
+            background: rgba(0,0,0,0.5);
+            border-right: 1px solid var(--border);
+            padding: 30px;
+            overflow-y: auto;
         }
 
-        h1 {
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        h1, h2 {
             font-family: 'Orbitron', sans-serif;
             color: var(--accent);
             text-shadow: 0 0 15px var(--glow);
-            text-align: center;
-            margin-bottom: 40px;
         }
 
-        .chapter-list {
+        h1 { text-align: center; margin-bottom: 40px; font-size: 1.5rem; }
+
+        .item-list {
             list-style: none;
             padding: 0;
-            margin-bottom: 40px;
+            margin: 0 0 20px 0;
             border: 1px solid var(--border);
             border-radius: 10px;
             overflow: hidden;
         }
 
-        .chapter-item {
+        .item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 15px 20px;
             background: rgba(255,255,255,0.02);
             border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
         }
 
-        .chapter-item:last-child { border-bottom: none; }
+        .item:hover { background: rgba(0, 212, 255, 0.05); }
+        .item.active { background: rgba(0, 212, 255, 0.1); border-left: 3px solid var(--accent); }
+        .item:last-child { border-bottom: none; }
 
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
+        .controls { display: flex; gap: 10px; margin-bottom: 30px; }
 
-        input {
-            flex-grow: 1;
+        input[type="text"], input[type="number"], input[type="file"] {
             background: rgba(0,0,0,0.3);
             border: 1px solid var(--border);
             color: white;
-            padding: 12px 20px;
-            border-radius: 30px;
+            padding: 10px 15px;
+            border-radius: 8px;
             font-family: 'Inter', sans-serif;
+            flex-grow: 1;
         }
 
         button {
             background: var(--accent);
             color: black;
             border: none;
-            padding: 12px 30px;
-            border-radius: 30px;
+            padding: 10px 20px;
+            border-radius: 8px;
             cursor: pointer;
             font-family: 'Orbitron', sans-serif;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
             transition: all 0.3s ease;
         }
 
-        button:hover {
-            box-shadow: 0 0 20px var(--glow);
-            transform: scale(1.05);
+        button:hover { box-shadow: 0 0 15px var(--glow); transform: scale(1.02); }
+
+        button.outline {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
         }
 
-        button.delete-btn {
+        button.outline:hover { background: var(--accent); color: black; }
+
+        button.danger {
             background: transparent;
             color: #ff4d4d;
             border: 1px solid #ff4d4d;
-            padding: 5px 15px;
-            border-radius: 20px;
             font-size: 0.7rem;
-            align-self: center;
+            padding: 5px 10px;
         }
 
-        button.delete-btn:hover {
-            background: #ff4d4d;
-            color: black;
-            box-shadow: 0 0 15px rgba(255, 77, 77, 0.5);
-            transform: scale(1.02);
+        button.danger:hover { background: #ff4d4d; color: black; box-shadow: 0 0 10px rgba(255,77,77,0.5); }
+
+        .btn-group { display: flex; gap: 5px; }
+
+        .save-bar {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            background: #000;
+            border-top: 1px solid var(--border);
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            z-index: 100;
         }
 
-        .save-hint {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-align: center;
-            margin-top: 20px;
+        .milestone-img-preview {
+            max-width: 150px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+        }
+
+        .milestone-form {
+            background: var(--glass);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            display: grid;
+            gap: 15px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Chapter Manifest Admin</h1>
+    <div class="sidebar">
+        <h1>Chapters</h1>
         
-        <ul id="chapter-list" class="chapter-list"></ul>
-
         <div class="controls">
-            <input type="text" id="new-chapter" placeholder="Enter Chapter Title...">
-            <button onclick="addChapter()">ADD</button>
+            <input type="text" id="new-chapter" placeholder="New Chapter Title...">
+            <button onclick="addChapter()">Add</button>
         </div>
 
-        <div style="text-align: center;">
-            <button onclick="downloadManifest()" style="background: transparent; color: var(--accent); border: 1px solid var(--accent);">Download chapters.txt</button>
+        <ul id="chapter-list" class="item-list"></ul>
+    </div>
+
+    <div class="main-content">
+        <h2 id="ms-title">Select a Chapter</h2>
+        
+        <div id="milestone-editor" style="display: none; padding-bottom: 80px;">
+            <p style="color: var(--text-muted);">Manage configuration for <span id="ms-audio-key" style="color: var(--accent);"></span></p>
+            
+            <div class="milestone-form" style="margin-bottom: 20px;">
+                <h3>Background Music</h3>
+                <div id="bgm-display" style="margin-bottom: 10px; font-size: 0.9rem; color: var(--accent);">None</div>
+                
+                <div id="bgm-volume-container" style="display: none; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;">
+                    <label style="display:flex; justify-content: space-between; margin-bottom:5px;">
+                        <span>Volume:</span>
+                        <span id="bgm-vol-label">20%</span>
+                    </label>
+                    <input type="range" id="bgm-volume" min="0" max="1" step="0.05" style="width: 100%;" oninput="changeBGMVolume(this.value)">
+                </div>
+
+                <div>
+                    <label style="display:block; margin-bottom:5px;">Upload Audio Track (.mp3):</label>
+                    <input type="file" id="bgm-file" accept="audio/*">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button onclick="uploadAndSetBGM()" id="bgm-upload-btn">Set Background Music</button>
+                    <button class="danger" onclick="removeBGM()">Remove Track</button>
+                </div>
+            </div>
+
+            <div class="milestone-form">
+                <h3>Add New Transition</h3>
+                <div>
+                    <label style="display:block; margin-bottom:5px;">Time (seconds):</label>
+                    <input type="number" id="ms-time" value="0" min="0" step="1">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:5px;">Image File (Browse Google Drive / Local):</label>
+                    <input type="file" id="ms-file" accept="image/*">
+                </div>
+                <button onclick="uploadAndAddMilestone()" id="upload-btn">Upload & Add Transition</button>
+            </div>
+
+            <h3>Current Transitions</h3>
+            <ul id="milestone-list" class="item-list"></ul>
         </div>
-        <p class="save-hint">Click ADD to update the list, then download and replace your <b>chapters.txt</b> file.</p>
+    </div>
+
+    <div class="save-bar">
+        <button onclick="saveAllToServer()" style="font-size: 1.1rem; padding: 15px 40px;">💾 Save All Changes to Server</button>
     </div>
 
     <script>
         let chapters = [];
+        let milestones = {};
+        let bgmTracks = {};
+        let activeAudioKey = null;
 
         async function init() {
             try {
-                const response = await fetch('chapters.txt');
-                if (response.ok) {
-                    const text = await response.text();
-                    chapters = text.split(/\r?\n/).map(line => line.trim()).filter(line => line.length > 0);
-                    render();
+                const cRes = await fetch('chapters.txt');
+                if (cRes.ok) {
+                    const text = await cRes.text();
+                    chapters = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
                 }
+                const mRes = await fetch('milestones.json');
+                if (mRes.ok) {
+                    milestones = await mRes.json();
+                }
+                const bRes = await fetch('bgm.json');
+                if (bRes.ok) {
+                    bgmTracks = await bRes.json();
+                }
+                renderChapters();
             } catch (err) {
-                console.error("No existing manifest found.");
+                console.error("Initialization failed", err);
             }
         }
 
-        function render() {
+        function renderChapters() {
             const list = document.getElementById('chapter-list');
-            list.innerHTML = chapters.map((title, i) => `
-                <li class="chapter-item">
-                    <div style="display: flex; flex-direction: column;">
-                        <span>${(i+1).toString().padStart(2, '0')}. ${title}</span>
-                        <span style="color: var(--text-muted); font-size: 0.7rem;">chapter${i+1}.mp3</span>
+            let html = `
+                <li class="item ${activeAudioKey === 'audio/intro.mp3' ? 'active' : ''}" onclick="selectChapter('audio/intro.mp3', 'Introduction')">
+                    <div>
+                        <strong>Introduction</strong>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">audio/intro.mp3</div>
                     </div>
-                    <button class="delete-btn" onclick="deleteChapter(${i})">DELETE</button>
                 </li>
-            `).join('');
+            `;
+
+            html += chapters.map((title, i) => {
+                const audioKey = `audio/chapter${i+1}.mp3`;
+                const isActive = activeAudioKey === audioKey ? 'active' : '';
+                return `
+                    <li class="item ${isActive}" onclick="selectChapter('${audioKey}', 'Chapter ${i+1}: ${title.replace(/'/g, "\\'")}')">
+                        <div style="flex-grow: 1;">
+                            <strong>${(i+1).toString().padStart(2, '0')}. ${title}</strong>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">${audioKey}</div>
+                        </div>
+                        <div class="btn-group" onclick="event.stopPropagation()">
+                            <button class="outline" style="padding: 5px 10px; font-size: 0.7rem;" onclick="editChapter(${i})">Edit</button>
+                            <button class="danger" onclick="deleteChapter(${i})">Del</button>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+            list.innerHTML = html;
         }
 
         function addChapter() {
@@ -176,25 +271,252 @@
             if (title) {
                 chapters.push(title);
                 input.value = '';
-                render();
+                renderChapters();
+            }
+        }
+
+        function editChapter(index) {
+            const newTitle = prompt("Edit Chapter Title:", chapters[index]);
+            if (newTitle !== null && newTitle.trim() !== '') {
+                chapters[index] = newTitle.trim();
+                renderChapters();
             }
         }
 
         function deleteChapter(index) {
-            if (confirm(`Are you sure you want to delete "${chapters[index]}"?`)) {
-                chapters.splice(index, 1);
-                render();
+            chapters.splice(index, 1);
+            // Note: Milestones for re-numbered chapters might get out of sync, 
+            // handling that perfectly is complex, but this is basic support.
+            renderChapters();
+            if (activeAudioKey === `audio/chapter${index+1}.mp3`) {
+                document.getElementById('milestone-editor').style.display = 'none';
+                activeAudioKey = null;
             }
         }
 
-        function downloadManifest() {
-            const blob = new Blob([chapters.join('\n')], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'chapters.txt';
-            a.click();
-            window.URL.revokeObjectURL(url);
+        function selectChapter(audioKey, displayTitle) {
+            activeAudioKey = audioKey;
+            renderChapters(); // Update active class
+            
+            document.getElementById('ms-title').innerText = displayTitle;
+            document.getElementById('ms-audio-key').innerText = audioKey;
+            document.getElementById('milestone-editor').style.display = 'block';
+            
+            if (!milestones[audioKey]) milestones[audioKey] = [];
+            
+            // Sort milestones by time
+            milestones[audioKey].sort((a, b) => a.time - b.time);
+            renderMilestones();
+            renderBGM();
+        }
+
+        function renderBGM() {
+            const display = document.getElementById('bgm-display');
+            const volContainer = document.getElementById('bgm-volume-container');
+            const volSlider = document.getElementById('bgm-volume');
+            const volLabel = document.getElementById('bgm-vol-label');
+
+            if (bgmTracks[activeAudioKey]) {
+                const track = bgmTracks[activeAudioKey];
+                // Handle legacy string format or new object format
+                const src = typeof track === 'string' ? track : track.src;
+                const vol = typeof track === 'string' ? 0.2 : (track.volume || 0.2);
+                
+                // Ensure data is in object format
+                bgmTracks[activeAudioKey] = { src: src, volume: vol };
+                
+                display.innerText = src;
+                volContainer.style.display = 'block';
+                volSlider.value = vol;
+                volLabel.innerText = Math.round(vol * 100) + '%';
+            } else {
+                display.innerText = "None";
+                volContainer.style.display = 'none';
+            }
+        }
+
+        function changeBGMVolume(val) {
+            if (bgmTracks[activeAudioKey]) {
+                const vol = parseFloat(val);
+                bgmTracks[activeAudioKey].volume = vol;
+                document.getElementById('bgm-vol-label').innerText = Math.round(vol * 100) + '%';
+            }
+        }
+
+        async function uploadAndSetBGM() {
+            const fileInput = document.getElementById('bgm-file');
+            const btn = document.getElementById('bgm-upload-btn');
+
+            if (fileInput.files.length === 0) return alert("Please select an audio file first.");
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('audio', file);
+
+            btn.innerText = "Uploading...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/upload_audio', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (response.ok && result.filepath) {
+                    bgmTracks[activeAudioKey] = { src: result.filepath, volume: 0.2 };
+                    fileInput.value = '';
+                    renderBGM();
+                } else {
+                    alert("Upload failed: " + (result.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Upload error.");
+            } finally {
+                btn.innerText = "Set Background Music";
+                btn.disabled = false;
+            }
+        }
+
+        function removeBGM() {
+            delete bgmTracks[activeAudioKey];
+            renderBGM();
+        }
+
+        function renderMilestones() {
+            const list = document.getElementById('milestone-list');
+            const ms = milestones[activeAudioKey] || [];
+            
+            if (ms.length === 0) {
+                list.innerHTML = '<li class="item" style="justify-content:center; color: var(--text-muted);">No transitions yet.</li>';
+                return;
+            }
+
+            list.innerHTML = ms.map((m, index) => `
+                <li class="item">
+                    <div style="display:flex; gap: 15px; align-items: center;">
+                        <div style="font-family: Orbitron; color: var(--accent); font-size: 1.2rem; width: 60px;">${m.time}s</div>
+                        <img src="${m.img}" class="milestone-img-preview" onerror="this.src=''">
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">${m.img}</div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="outline" style="padding: 5px 10px; font-size: 0.7rem;" onclick="editMilestoneTime(${index})">Edit Time</button>
+                        <button class="danger" onclick="deleteMilestone(${index})">Remove</button>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        async function uploadAndAddMilestone() {
+            const timeInput = document.getElementById('ms-time');
+            const fileInput = document.getElementById('ms-file');
+            const btn = document.getElementById('upload-btn');
+
+            const time = parseInt(timeInput.value);
+            if (isNaN(time) || time < 0) return alert("Invalid time.");
+            
+            if (fileInput.files.length === 0) return alert("Please select an image file first.");
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('image', file);
+
+            btn.innerText = "Uploading...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/upload_image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (response.ok && result.filepath) {
+                    if (!milestones[activeAudioKey]) milestones[activeAudioKey] = [];
+                    
+                    // Add new milestone and sort
+                    milestones[activeAudioKey].push({ time: time, img: result.filepath });
+                    milestones[activeAudioKey].sort((a, b) => a.time - b.time);
+                    
+                    // Reset form
+                    fileInput.value = '';
+                    timeInput.value = time + 10; // Suggest next time
+                    renderMilestones();
+                } else {
+                    alert("Upload failed: " + (result.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Upload error.");
+            } finally {
+                btn.innerText = "Upload & Add Transition";
+                btn.disabled = false;
+            }
+        }
+
+        function deleteMilestone(index) {
+            milestones[activeAudioKey].splice(index, 1);
+            renderMilestones();
+        }
+
+        function editMilestoneTime(index) {
+            const m = milestones[activeAudioKey][index];
+            const newTime = prompt(`Edit time (in seconds) for this image:`, m.time);
+            if (newTime !== null) {
+                const parsed = parseInt(newTime);
+                if (!isNaN(parsed) && parsed >= 0) {
+                    m.time = parsed;
+                    milestones[activeAudioKey].sort((a, b) => a.time - b.time);
+                    renderMilestones();
+                } else {
+                    alert("Invalid time entered. Must be a positive number.");
+                }
+            }
+        }
+
+        async function saveAllToServer() {
+            const fileInput = document.getElementById('ms-file');
+            if (fileInput && fileInput.files.length > 0) {
+                await uploadAndAddMilestone();
+            }
+
+            const bgmFileInput = document.getElementById('bgm-file');
+            if (bgmFileInput && bgmFileInput.files.length > 0) {
+                await uploadAndSetBGM();
+            }
+
+            try {
+                // Save Chapters
+                const cRes = await fetch('/api/save_chapters', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chapters })
+                });
+
+                // Save Milestones
+                const mRes = await fetch('/api/save_milestones', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(milestones)
+                });
+
+                // Save BGM
+                const bRes = await fetch('/api/save_bgm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bgmTracks)
+                });
+
+                if (cRes.ok && mRes.ok && bRes.ok) {
+                    location.reload();
+                } else {
+                    alert("Error saving data. Check console.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Network error during save.");
+            }
         }
 
         init();

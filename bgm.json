@@ -1,0 +1,6 @@
+{
+    "audio/intro.mp3": {
+        "src": "audio/bgm/Airlock_Pressure_Drop.mp3",
+        "volume": 0.15
+    }
+}

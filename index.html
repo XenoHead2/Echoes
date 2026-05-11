@@ -195,6 +195,32 @@
         audio:hover {
             opacity: 1;
         }
+
+        .player-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .bookmark-btn {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .bookmark-btn:hover {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -206,7 +232,17 @@
             <div>
                 <h2 id="active-chapter-title">Introduction</h2>
                 <p id="active-chapter-desc">On the distant world of Dorin, life clings to existence within sprawling, self-sustaining domed cities like Veridia...</p>
-                <audio id="main-audio-player" controls src="audio/intro.mp3"></audio>
+                <div class="player-container">
+                    <audio id="main-audio-player" controls src="audio/intro.mp3"></audio>
+                    <audio id="bgm-player" loop style="display:none;"></audio>
+                    <button class="bookmark-btn" onclick="setManualBookmark()" title="Save current position">🔖 Bookmark</button>
+                    <button class="bookmark-btn" onclick="loadManualBookmark(event)" title="Load saved position">📂 Load</button>
+                </div>
+                
+                <div id="comic-viewer-container" style="margin-top: 20px; text-align: center; display: none;">
+                    <img id="comic-img" src="" alt="Chapter Visual" style="width: 100%; height: 500px; object-fit: contain; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: opacity 0.3s ease;">
+                </div>
+
                 <button class="browse-btn" onclick="toggleModal(true)">Explore Chapters</button>
             </div>
         </div>
@@ -232,6 +268,8 @@
 
     <script>
         let chapters = [];
+        let chapterMilestones = {};
+        let bgmTracks = {};
 
         async function init() {
             try {
@@ -246,6 +284,19 @@
                     const escapedTitle = title.replace(/'/g, "\\'");
                     return `<li><a id="toc-ch-${num}" onclick="loadChapter(${num}, '${escapedTitle}')">${num.toString().padStart(2, '0')}. ${title}</a></li>`;
                 }).join('');
+
+                try {
+                    const msResponse = await fetch('milestones.json');
+                    if (msResponse.ok) {
+                        chapterMilestones = await msResponse.json();
+                    }
+                    const bRes = await fetch('bgm.json');
+                    if (bRes.ok) {
+                        bgmTracks = await bRes.json();
+                    }
+                } catch (e) {
+                    console.error("Failed to load data:", e);
+                }
             } catch (err) {
                 console.error("Manifest failed to initialize:", err);
             }
@@ -268,12 +319,23 @@
             const player = document.getElementById('main-audio-player');
             const titleDisplay = document.getElementById('active-chapter-title');
             const descDisplay = document.getElementById('active-chapter-desc');
+            const audioSrc = `audio/chapter${num}.mp3`;
 
-            player.src = `audio/chapter${num}.mp3`;
+            // Feature 1: Load Bookmark (Wait for metadata to ensure currentTime can be set)
+            player.onloadedmetadata = () => {
+                const savedTime = localStorage.getItem(`bookmark_${audioSrc}`);
+                if (savedTime) player.currentTime = parseFloat(savedTime);
+                player.onloadedmetadata = null;
+            };
+
+            player.src = audioSrc;
             titleDisplay.innerText = `Chapter ${num}: ${title}`;
             descDisplay.innerText = `You are now listening to the audio broadcast of Chapter ${num}.`;
             
+            document.getElementById('comic-viewer-container').style.display = 'none';
+
             updateActiveStatus(`toc-ch-${num}`);
+
             player.play();
             toggleModal(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -283,23 +345,139 @@
             const player = document.getElementById('main-audio-player');
             const titleDisplay = document.getElementById('active-chapter-title');
             const descDisplay = document.getElementById('active-chapter-desc');
+            const audioSrc = `audio/intro.mp3`;
 
-            player.src = `audio/intro.mp3`;
+            // Feature 1: Load Bookmark (Wait for metadata to ensure currentTime can be set)
+            player.onloadedmetadata = () => {
+                const savedTime = localStorage.getItem(`bookmark_${audioSrc}`);
+                if (savedTime) player.currentTime = parseFloat(savedTime);
+                player.onloadedmetadata = null;
+            };
+
+            player.src = audioSrc;
             titleDisplay.innerText = `Introduction`;
             descDisplay.innerText = `On the distant world of Dorin, life clings to existence within sprawling, self-sustaining domed cities like Veridia...`;
-            
+
+            document.getElementById('comic-viewer-container').style.display = 'none';
+
             updateActiveStatus(null);
             player.play();
             toggleModal(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        function setManualBookmark() {
+            const player = document.getElementById('main-audio-player');
+            const btn = document.querySelector('.bookmark-btn');
+            const currentSrc = player.getAttribute('src');
+            
+            localStorage.setItem(`bookmark_${currentSrc}`, player.currentTime);
+            
+            // Visual feedback
+            const originalText = btn.innerText;
+            btn.innerText = "Saved!";
+            btn.style.borderColor = "#fff";
+            setTimeout(() => { btn.innerText = originalText; btn.style.borderColor = ""; }, 2000);
+        }
+
+        function loadManualBookmark(e) {
+            const player = document.getElementById('main-audio-player');
+            const currentSrc = player.getAttribute('src');
+            const savedTime = localStorage.getItem(`bookmark_${currentSrc}`);
+            
+            if (savedTime) {
+                player.currentTime = parseFloat(savedTime);
+                player.play();
+                
+                // Visual feedback
+                const btn = e.currentTarget;
+                const originalText = btn.innerText;
+                btn.innerText = "Loaded!";
+                setTimeout(() => { btn.innerText = originalText; }, 2000);
+            } else {
+                alert("No bookmark found for this track.");
+            }
+        }
+
         init();
+
+        // Handle Audio Events
+        const mainPlayer = document.getElementById('main-audio-player');
+        const comicImg = document.getElementById('comic-img');
+        const comicContainer = document.getElementById('comic-viewer-container');
+
+        mainPlayer.addEventListener('timeupdate', () => {
+            const currentTime = mainPlayer.currentTime;
+            const currentSrc = mainPlayer.getAttribute('src');
+
+            // Feature 1: Save Bookmark every update
+            localStorage.setItem(`bookmark_${currentSrc}`, currentTime);
+
+            // Feature 2: Sync-to-Audio Comic Feature
+            const milestones = chapterMilestones[currentSrc];
+            if (milestones) {
+                // Find the latest milestone that has passed
+                const activeMilestone = milestones
+                    .filter(m => m.time <= currentTime)
+                    .pop();
+                
+                if (activeMilestone) {
+                    comicContainer.style.display = 'block';
+                    if (comicImg.src.indexOf(activeMilestone.img) === -1) {
+                        if (!comicImg.getAttribute('src')) {
+                            // First load, no fade needed
+                            comicImg.src = activeMilestone.img;
+                            comicImg.style.opacity = 1;
+                        } else {
+                            // Fade out, swap, fade in
+                            comicImg.style.opacity = 0;
+                            setTimeout(() => {
+                                comicImg.src = activeMilestone.img;
+                                comicImg.onload = () => {
+                                    comicImg.style.opacity = 1;
+                                };
+                            }, 300); // Wait for CSS transition (0.3s)
+                        }
+                    }
+                } else {
+                    comicContainer.style.display = 'none';
+                }
+            } else {
+                comicContainer.style.display = 'none';
+            }
+        });
+
+        const bgmPlayer = document.getElementById('bgm-player');
+        
+        mainPlayer.addEventListener('play', () => {
+            const currentSrc = mainPlayer.getAttribute('src');
+            // If there's a BGM track, ensure it is loaded and volume is applied
+            const track = bgmTracks[currentSrc];
+            if (track) {
+                const src = typeof track === 'string' ? track : track.src;
+                const vol = typeof track === 'string' ? 0.2 : (track.volume || 0.2);
+                
+                if (!bgmPlayer.src || bgmPlayer.src.indexOf(src) === -1) {
+                    bgmPlayer.src = src;
+                }
+                bgmPlayer.volume = vol;
+                bgmPlayer.play().catch(e => console.log("BGM play blocked:", e));
+            } else {
+                bgmPlayer.pause();
+                bgmPlayer.src = '';
+            }
+        });
+
+        mainPlayer.addEventListener('pause', () => {
+            bgmPlayer.pause();
+        });
 
         document.addEventListener('play', function(e){
             var audios = document.getElementsByTagName('audio');
             for(var i = 0, len = audios.length; i < len;i++){
-                if(audios[i] != e.target){ audios[i].pause(); }
+                if(audios[i] != e.target && audios[i].id !== 'bgm-player' && e.target.id !== 'bgm-player'){ 
+                    audios[i].pause(); 
+                }
             }
         }, true);
     </script>
