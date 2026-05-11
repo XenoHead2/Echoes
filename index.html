@@ -297,6 +297,21 @@
                 } catch (e) {
                     console.error("Failed to load data:", e);
                 }
+
+                // Restore last active chapter
+                try {
+                    const lastActive = localStorage.getItem('lastActiveChapter');
+                    if (lastActive) {
+                        const data = JSON.parse(lastActive);
+                        if (data.type === 'intro') {
+                            loadIntro(false);
+                        } else if (data.type === 'chapter') {
+                            loadChapter(data.num, data.title, false);
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to restore last chapter:", e);
+                }
             } catch (err) {
                 console.error("Manifest failed to initialize:", err);
             }
@@ -315,11 +330,13 @@
             }
         }
 
-        function loadChapter(num, title) {
+        function loadChapter(num, title, autoPlay = true) {
             const player = document.getElementById('main-audio-player');
             const titleDisplay = document.getElementById('active-chapter-title');
             const descDisplay = document.getElementById('active-chapter-desc');
             const audioSrc = `audio/chapter${num}.mp3`;
+
+            localStorage.setItem('lastActiveChapter', JSON.stringify({ type: 'chapter', num: num, title: title }));
 
             // Feature 1: Load Bookmark (Wait for metadata to ensure currentTime can be set)
             player.onloadedmetadata = () => {
@@ -336,16 +353,20 @@
 
             updateActiveStatus(`toc-ch-${num}`);
 
-            player.play();
             toggleModal(false);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (autoPlay) {
+                player.play();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
-        function loadIntro() {
+        function loadIntro(autoPlay = true) {
             const player = document.getElementById('main-audio-player');
             const titleDisplay = document.getElementById('active-chapter-title');
             const descDisplay = document.getElementById('active-chapter-desc');
             const audioSrc = `audio/intro.mp3`;
+
+            localStorage.setItem('lastActiveChapter', JSON.stringify({ type: 'intro' }));
 
             // Feature 1: Load Bookmark (Wait for metadata to ensure currentTime can be set)
             player.onloadedmetadata = () => {
@@ -361,9 +382,11 @@
             document.getElementById('comic-viewer-container').style.display = 'none';
 
             updateActiveStatus(null);
-            player.play();
             toggleModal(false);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (autoPlay) {
+                player.play();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         function setManualBookmark() {
